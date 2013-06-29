@@ -72,9 +72,6 @@ class LatexUI():
         self.builddir = os.path.join(os.getcwd(), parameters.outdir, self.name)
 
         if os.path.exists(self.builddir):
-            LOG.info("\n"*8)
-            LOG.info("###### Cleaning up: %s" % self.builddir)
-            LOG.info("\n"*8)
             shutil.rmtree(self.builddir)
 
         os.makedirs(self.builddir)
@@ -83,8 +80,6 @@ class LatexUI():
         shutil.copyfile(artifactname, self.source)
 
         targetResourcesPath = os.path.join(self.builddir, "resources")
-        if os.path.isdir(targetResourcesPath):
-            shutil.rmtree(targetResourcesPath)
         shutil.copytree(os.path.join(os.path.dirname(artifactPath), "resources"), targetResourcesPath)
 
         self.viewer = parameters.viewer
