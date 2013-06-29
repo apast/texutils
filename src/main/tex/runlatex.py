@@ -44,27 +44,40 @@ class LatexUI():
     def run(self):
         LOG.info("Running LaTeX")
         subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
-        LOG.info("Running BiBTeX over")
+
+        LOG.info("Running BiBTeX8")
         subprocess.call(["bibtex8", os.path.relpath(os.path.join(self.builddir, "%s.aux"%self.name))])
+
         LOG.info("Making Indexes")
         subprocess.call(["makeindex", self.builddir])
+
         LOG.info("Running LaTeX")
         subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
+
+        LOG.info("Running BiBTeX8")
         subprocess.call(["bibtex8", os.path.relpath(os.path.join(self.builddir, "%s.aux"%self.name))])
+
         LOG.info("Running LaTeX")
         subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
+
         LOG.info("Opening Viewer")
         subprocess.call([self.viewer, os.path.join(self.builddir, self.name+".dvi")])
 
     def prepareEnvironment(self, parameters):
         artifactname = parameters.input
+        artifactPath = os.path.abspath(artifactname)
         nameRegex = re.match("^(.+)\.tex$", artifactname)
 
         self.name = nameRegex.group(1)
         self.builddir = os.path.join(os.getcwd(), parameters.outdir, self.name)
 
-        if not os.path.exists(self.builddir):
-            os.makedirs(self.builddir)
+        if os.path.exists(self.builddir):
+            LOG.info("\n"*8)
+            LOG.info("###### Cleaning up: %s" % self.builddir)
+            LOG.info("\n"*8)
+            shutil.rmtree(self.builddir)
+
+        os.makedirs(self.builddir)
         self.source = os.path.join(self.builddir, artifactname)
 
         shutil.copyfile(artifactname, self.source)
@@ -72,7 +85,7 @@ class LatexUI():
         targetResourcesPath = os.path.join(self.builddir, "resources")
         if os.path.isdir(targetResourcesPath):
             shutil.rmtree(targetResourcesPath)
-        shutil.copytree("./resources", targetResourcesPath)
+        shutil.copytree(os.path.join(os.path.dirname(artifactPath), "resources"), targetResourcesPath)
 
         self.viewer = parameters.viewer
 
