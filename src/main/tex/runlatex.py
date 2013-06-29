@@ -34,16 +34,18 @@ logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
+
 class LatexUI():
     def __init__(self):
         self.builddir = None
         self.name = None
         self.runtime = "latex"
         self.source = None
+        self.format = "dvi"
 
     def run(self):
         LOG.info("Running LaTeX")
-        subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
+        subprocess.call([self.runtime, "-output-format", self.format, "-output-directory", self.builddir, "-shel-escape", self.source])
 
         LOG.info("Running BiBTeX8")
         subprocess.call(["bibtex8", os.path.relpath(os.path.join(self.builddir, "%s.aux"%self.name))])
@@ -52,18 +54,19 @@ class LatexUI():
         subprocess.call(["makeindex", self.builddir])
 
         LOG.info("Running LaTeX")
-        subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
+        subprocess.call([self.runtime, "-output-format", self.format, "-output-directory", self.builddir, "-shel-escape", self.source])
 
         LOG.info("Running BiBTeX8")
         subprocess.call(["bibtex8", os.path.relpath(os.path.join(self.builddir, "%s.aux"%self.name))])
 
         LOG.info("Running LaTeX")
-        subprocess.call([self.runtime, "-output-directory", self.builddir, "-shel-escape", self.source])
+        subprocess.call([self.runtime, "-output-format", self.format, "-output-directory", self.builddir, "-shel-escape", self.source])
 
         LOG.info("Opening Viewer")
-        subprocess.call([self.viewer, os.path.join(self.builddir, self.name+".dvi")])
+        subprocess.call([self.viewer, os.path.join(self.builddir, self.name+"."+self.format)])
 
     def prepareEnvironment(self, parameters):
+        self.format = parameters.format
         artifactname = parameters.input
         artifactPath = os.path.abspath(artifactname)
         nameRegex = re.match("^(.+)\.tex$", artifactname)
@@ -97,6 +100,7 @@ class LatexUI():
         parser.add_argument("-o", "--outdir", dest="outdir", help="Output Directory", required=True)
         parser.add_argument("-r", "--runtime", dest="runtime", help="Runtime Environment", default="latex")
         parser.add_argument("-v", "--viewer", dest="viewer", help="Viewer", default="xdvi")
+        parser.add_argument("-f", "--format", dest="format", help="Format", default="dvi")
         parser.add_argument("-s", "--runviewer", dest="runviewer", help="Open Output File on Viewer", default=False)
 
         values = parser.parse_args(args=args)
